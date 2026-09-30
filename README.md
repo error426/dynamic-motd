@@ -34,16 +34,6 @@ Last login: Mon Apr  3 07:28:01 2023 from laptop.example.org
 
 ## Installation
 
-### Debian package
-
-Go to <https://framagit.org/luc/dynamic-motd/-/releases/permalink/latest>, download the Debian package and its signature file.
-
-Check the signature of the Debian package and install the package:
-```bash
-minisign -Vm dynamic-motd_*.deb -P RWRzxrp04vb4Db3sle7Az6kSeCipT1ixRjRZPXdUUQuuwgi9UW81E+dx &&
-sudo apt install ./dynamic-motd_*.deb
-```
-
 ### Manual installation
 
 You need to install some packages:
@@ -71,16 +61,7 @@ rm /etc/motd
 ln -s /var/run/motd /etc/motd
 ```
 
-## Disabling for some users
-
-Just create a `/etc/update-motd.d/hushlogin` file containing the names of the users, like:
-
-```
-alice
-bob
-```
-
-## Ansible
+### Ansible
 
 You will find a playbook in `playbook.yml`. It installs the dependencies, copies `update-motd.d/` from the repo checkout to `/etc/update-motd.d/` and links `/etc/motd` to `/var/run/motd`.
 
@@ -94,6 +75,15 @@ Set `motd_hosts` to target a group (default: `all`) and `motd_install_optional=f
 
 ```
 ansible-playbook -i your_inventory playbook.yml -e motd_hosts=webservers -e motd_install_optional=false
+```
+
+## Disabling for some users
+
+Just create a `/etc/update-motd.d/hushlogin` file containing the names of the users, like:
+
+```
+alice
+bob
 ```
 
 ## License
