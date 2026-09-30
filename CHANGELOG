@@ -7,6 +7,8 @@ Revision history for dynamic-motd
 	- Format scripts with shftmt
 	- Use linting on scripts (shellcheck, pylint, mypy)
 	- Create a debian package in CI
+	- Remove figlet hostname banner and dependency
+	- Remove Salt formula
 
 0.04 2016-08-02
 	- Allow to use checkrestart instead of needrestart for services

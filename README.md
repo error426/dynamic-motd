@@ -6,12 +6,6 @@ Example:
 
 ```
 
-   ___  ___ _ ____   _____ _ __
-  / __|/ _ \ '__\ \ / / _ \ '__|
-  \__ \  __/ |   \ V /  __/ |
-  |___/\___|_|    \_/ \___|_|
-
-
   Debian GNU/Linux 12 (bookworm) (kernel 6.1.0-7-amd64)
 
 
@@ -55,7 +49,7 @@ sudo apt install ./dynamic-motd_*.deb
 You need to install some packages:
 
 ```
-apt-get install figlet lsb-release python3-utmp bc
+apt-get install lsb-release python3-utmp bc
 ```
 
 Optionally, you can install `needrestart` which is used to show a message if your server need a reboot (main reason (and the only one I know): you have upgraded your kernel).
@@ -84,16 +78,6 @@ Just create a `/etc/update-motd.d/hushlogin` file containing the names of the us
 ```
 alice
 bob
-```
-
-## Salt
-
-You will find a working salt formula in `init.sls`.
-
-```
-cd /srv/salt
-git clone https://framagit.org/luc/dynamic-motd.git motd
-salt your_server state.sls motd
 ```
 
 ## License

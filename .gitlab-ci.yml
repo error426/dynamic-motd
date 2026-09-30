@@ -10,8 +10,7 @@ shellcheck:
     - cd update-motd.d/
     - touch lsb-release
     - |
-      shellcheck -x 00-figlet \
-                    10-banner \
+      shellcheck -x 10-banner \
                     20-system-info \
                     30-need-upgrade \
                     40-need-reboot \
