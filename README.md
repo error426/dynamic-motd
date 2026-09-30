@@ -60,7 +60,7 @@ You can optionally install `debian-goodies` which provides `checkrestart`, which
 
 Check out the repo (to a folder of your choice)
 ```
-git clone https://framagit.org/luc/dynamic-motd.git
+git clone https://github.com/error426/dynamic-motd.git
 cd dynamic-motd/
 ```
 
@@ -78,6 +78,22 @@ Just create a `/etc/update-motd.d/hushlogin` file containing the names of the us
 ```
 alice
 bob
+```
+
+## Ansible
+
+You will find a playbook in `playbook.yml`. It installs the dependencies, copies `update-motd.d/` from the repo checkout to `/etc/update-motd.d/` and links `/etc/motd` to `/var/run/motd`.
+
+```
+git clone https://github.com/error426/dynamic-motd.git
+cd dynamic-motd/
+ansible-playbook -i your_inventory playbook.yml
+```
+
+Set `motd_hosts` to target a group (default: `all`) and `motd_install_optional=false` to skip `debian-goodies` and `needrestart`:
+
+```
+ansible-playbook -i your_inventory playbook.yml -e motd_hosts=webservers -e motd_install_optional=false
 ```
 
 ## License

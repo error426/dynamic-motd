@@ -1,0 +1,67 @@
+---
+- name: Install dynamic motd
+  hosts: "{{ motd_hosts | default('all') }}"
+  become: true
+  vars:
+    motd_packages:
+      - lsb-release
+      - python3-utmp
+      - bc
+    # Used by 50-services-need-restart, not required
+    motd_optional_packages:
+      - debian-goodies
+      - needrestart
+    motd_install_optional: true
+
+  tasks:
+    - name: Install required packages
+      ansible.builtin.apt:
+        name: "{{ motd_packages }}"
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Install optional packages
+      ansible.builtin.apt:
+        name: "{{ motd_optional_packages }}"
+        state: present
+      when: motd_install_optional | bool
+
+    - name: Create update-motd.d directory
+      ansible.builtin.file:
+        path: /etc/update-motd.d
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Copy update-motd.d scripts
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: /etc/update-motd.d/
+        owner: root
+        group: root
+        mode: preserve
+      with_fileglob:
+        - "{{ playbook_dir }}/update-motd.d/*"
+
+    - name: Check current /etc/motd
+      ansible.builtin.stat:
+        path: /etc/motd
+      register: motd_stat
+
+    - name: Back up static /etc/motd to /etc/motd-dist
+      ansible.builtin.copy:
+        src: /etc/motd
+        dest: /etc/motd-dist
+        remote_src: true
+        force: false
+        mode: preserve
+      when: motd_stat.stat.exists and motd_stat.stat.isreg
+
+    - name: Link /etc/motd to /var/run/motd
+      ansible.builtin.file:
+        src: /var/run/motd
+        dest: /etc/motd
+        state: link
+        force: true

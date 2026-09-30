@@ -9,6 +9,7 @@ Revision history for dynamic-motd
 	- Create a debian package in CI
 	- Remove figlet hostname banner and dependency
 	- Remove Salt formula
+	- Add Ansible playbook
 
 0.04 2016-08-02
 	- Allow to use checkrestart instead of needrestart for services
