@@ -57,33 +57,27 @@ cd dynamic-motd/
 Then, as `root`:
 ```
 cp -r update-motd.d/ /etc
-rm /etc/motd
-ln -s /var/run/motd /etc/motd
+mv /etc/motd /etc/motd-dist
 ```
 
 ### Ansible
 
-You will find a playbook in `playbook.yml`. It installs the dependencies, copies `update-motd.d/` from the repo checkout to `/etc/update-motd.d/` and links `/etc/motd` to `/var/run/motd`.
+`git` is only needed on the Ansible controller, not on the target servers.
+
+You will find a playbook in `playbook.yml`. It installs the dependencies, clones this repository on the Ansible controller into a temporary directory in `/tmp`, copies `update-motd.d/` to `/etc/update-motd.d/` on the target servers, removes the temporary directory and links `/etc/motd` to `/var/run/motd`.
 
 ```
-git clone https://github.com/error426/dynamic-motd.git
-cd dynamic-motd/
 ansible-playbook -i your_inventory playbook.yml
 ```
 
-Set `motd_hosts` to target a group (default: `all`) and `motd_install_optional=false` to skip `debian-goodies` and `needrestart`:
+Variables:
+
+- `motd_repo`: repository to clone (default: `https://github.com/error426/dynamic-motd.git`)
+- `motd_version`: branch, tag or commit to install (default: `main`)
+- `motd_install_optional`: set to `false` to skip `debian-goodies` and `needrestart` (default: `true`)
 
 ```
-ansible-playbook -i your_inventory playbook.yml -e motd_hosts=webservers -e motd_install_optional=false
-```
-
-## Disabling for some users
-
-Just create a `/etc/update-motd.d/hushlogin` file containing the names of the users, like:
-
-```
-alice
-bob
+ansible-playbook -i your_inventory playbook.yml -l webservers -e motd_install_optional=false
 ```
 
 ## License

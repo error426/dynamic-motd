@@ -1,8 +1,11 @@
 ---
 - name: Install dynamic motd
-  hosts: "{{ motd_hosts | default('all') }}"
+  hosts: all
   become: true
+  strategy: linear
   vars:
+    motd_repo: https://github.com/error426/dynamic-motd.git
+    motd_version: main
     motd_packages:
       - lsb-release
       - python3-utmp
@@ -35,15 +38,47 @@
         group: root
         mode: "0755"
 
-    - name: Copy update-motd.d scripts
-      ansible.builtin.copy:
-        src: "{{ item }}"
-        dest: /etc/update-motd.d/
-        owner: root
-        group: root
-        mode: preserve
-      with_fileglob:
-        - "{{ playbook_dir }}/update-motd.d/*"
+    # Clone on the controller so target servers do not need git
+    - name: Install update-motd.d scripts from git
+      block:
+        - name: Create temporary directory on controller
+          ansible.builtin.tempfile:
+            state: directory
+            path: /tmp
+            prefix: dynamic-motd.
+          register: motd_tmp
+          delegate_to: localhost
+          run_once: true  # noqa: run-once[task]
+          become: false
+
+        - name: Clone repository on controller
+          ansible.builtin.git:
+            repo: "{{ motd_repo }}"
+            version: "{{ motd_version }}"
+            dest: "{{ motd_tmp.path }}/repo"
+            depth: 1
+            single_branch: true
+          delegate_to: localhost
+          run_once: true  # noqa: run-once[task]
+          become: false
+
+        - name: Copy update-motd.d scripts to target
+          ansible.builtin.copy:
+            src: "{{ motd_tmp.path }}/repo/update-motd.d/"
+            dest: /etc/update-motd.d/
+            owner: root
+            group: root
+            mode: preserve
+
+      always:
+        - name: Remove temporary directory on controller
+          ansible.builtin.file:
+            path: "{{ motd_tmp.path }}"
+            state: absent
+          when: motd_tmp.path is defined
+          delegate_to: localhost
+          run_once: true  # noqa: run-once[task]
+          become: false
 
     - name: Check current /etc/motd
       ansible.builtin.stat:
@@ -59,9 +94,9 @@
         mode: preserve
       when: motd_stat.stat.exists and motd_stat.stat.isreg
 
-    - name: Link /etc/motd to /var/run/motd
-      ansible.builtin.file:
-        src: /var/run/motd
-        dest: /etc/motd
-        state: link
-        force: true
+    # - name: Link /etc/motd to /var/run/motd.dynamic
+    #   ansible.builtin.file:
+    #     src: /var/run/motd.dynamic
+    #     dest: /etc/motd
+    #     state: link
+    #     force: true
